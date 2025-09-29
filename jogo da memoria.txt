@@ -1,0 +1,86 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.*;
+
+public class JogoDaMemoria extends JFrame {
+    private JButton[] botoes;
+    private Integer[] valores;
+    private boolean[] revelado;
+    private int clicado1 = -1;
+    private int clicado2 = -1;
+    private Timer timer;
+
+    public JogoDaMemoria() {
+        setTitle("Jogo da Memória");
+        setSize(400, 400);
+        setLayout(new GridLayout(4, 4));
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        botoes = new JButton[16];
+        valores = new Integer[16];
+        revelado = new boolean[16];
+
+        // Criar pares de valores de 1 a 8 (8 pares = 16 posições)
+        ArrayList<Integer> lista = new ArrayList<>();
+        for (int i = 1; i <= 8; i++) {
+            lista.add(i);
+            lista.add(i);
+        }
+        Collections.shuffle(lista);
+        valores = lista.toArray(new Integer[0]);
+
+        // Criar botões
+        for (int i = 0; i < 16; i++) {
+            botoes[i] = new JButton();
+            botoes[i].setFont(new Font("Arial", Font.BOLD, 24));
+            int index = i;
+            botoes[i].addActionListener(e -> clique(index));
+            add(botoes[i]);
+        }
+
+        setVisible(true);
+    }
+
+    private void clique(int index) {
+        if (revelado[index] || clicado1 == index || clicado2 == index) return;
+
+        botoes[index].setText(String.valueOf(valores[index]));
+
+        if (clicado1 == -1) {
+            clicado1 = index;
+        } else if (clicado2 == -1) {
+            clicado2 = index;
+
+            if (valores[clicado1].equals(valores[clicado2])) {
+                revelado[clicado1] = true;
+                revelado[clicado2] = true;
+                clicado1 = -1;
+                clicado2 = -1;
+                verificarFim();
+            } else {
+                // Esperar 1 segundo e esconder os valores
+                timer = new Timer(1000, e -> {
+                    botoes[clicado1].setText("");
+                    botoes[clicado2].setText("");
+                    clicado1 = -1;
+                    clicado2 = -1;
+                    timer.stop();
+                });
+                timer.setRepeats(false);
+                timer.start();
+            }
+        }
+    }
+
+    private void verificarFim() {
+        for (boolean r : revelado) {
+            if (!r) return;
+        }
+        JOptionPane.showMessageDialog(this, "Parabéns! Você completou o jogo!");
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new JogoDaMemoria());
+    }
+}
